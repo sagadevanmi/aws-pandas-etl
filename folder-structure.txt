@@ -1,0 +1,24 @@
+historyload:.
+│   aws-pandas-etl.png
+│   config.yaml
+│   flow.txt
+│   main.py
+│   requirements.txt
+│   __init__.py
+│   
+├───temp_files
+│       main-temp.py
+│       red_schema.py
+│       sche_test.py
+│       __init__.py
+│       
+└───utils                               -> Helper files
+        config_gen.py
+        creds.py
+        dataframe_operations.py
+        log_support.py
+        rdbms_operations.py
+        redshift_operations.py
+        s3_operations.py
+        secret_manager_operations.py
+        __init__.py
