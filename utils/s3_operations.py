@@ -1,5 +1,5 @@
 import re
-from utils.creds import *
+from utils.aws_temp_keys import *
 import boto3
 import yaml
 
@@ -42,7 +42,7 @@ class S3Operations:
             dict_data = yaml.safe_load(yaml_data)
             return dict_data
         except yaml.YAMLError as exc:
-            log_s3.error(f"Exception: {str(exc)} while trying to read config file", extra=log_extra)
+            log_s3.error(f"Exception: {str(exc)} while trying to read config file")
             raise exc
     
 
