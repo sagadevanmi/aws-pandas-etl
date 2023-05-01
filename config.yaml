@@ -1,0 +1,45 @@
+# Bucket_Name: dev-s3-bucket
+Bucket_Name: stage-s3-bucket
+Local_Run_Config:
+  is_local_run: T
+  src_id: '1'
+  src_name: Employee
+  src_host: IP_ADDRESS_HERE
+  src_database: Employee
+  src_schema: dbo
+  aws_env: DEV
+Source_ID:
+  '1':
+    Secrets_Manager:
+      destination_secret_name: destination-secret
+      source_secret_name: source-secret
+      region_name: us-west-1
+    Source_Name: Employee 
+    DB_Info:
+      destination_database: ods
+      destination_schema: employee
+      source_database: Employee
+      source_schema: dbo
+    S3_Paths:
+      landing_prefix: static/Employee/
+      processed_prefix: static/Employee/
+    Tables:   
+      employees:
+        active_flag: T
+  '2':
+    Secrets_Manager:
+      destination_secret_name: destination-secret
+      source_secret_name: source-secret
+      region_name: us-west-1
+    Source_Name: Department
+    DB_Info:
+      destination_database: ods
+      destination_schema: department
+      source_database: Department
+      source_schema: dbo
+    S3_Paths:
+      landing_prefix: static/Department/
+      processed_prefix: static/Department/
+    Tables:   
+      departments:
+        active_flag: T

@@ -1,0 +1,7 @@
+pymssql
+pyyaml
+pg8000
+pandas
+pyodbc
+pyarrow
+boto3
