@@ -3,14 +3,14 @@ From config.yaml read configuration details like:
     2. List of tables which need to be processed 
     3. S3 bucket name
 Retrieve secret from Secrets Manager
-If some error in retrieving secrets, use default credentials(configured in utils/config_gen.py)
+If some error occurs while retrieving secrets, use default credentials(configured in utils/config_gen.py)
 Loop over list of tables
     if active_flag is set to True
         Read from MS SQL Server instance in chunks using pandas.read_sql()
         for each chunk:
             a. cast columns to match Redshift column datatype
             b. apply pyarrow schema to the chunk
-            c. write the chunk to S3 in specific folder using boto3
+            c. write the chunk to S3 in specific folder in parquet format using boto3
         if write to S3 was successful:
             run Redshift COPY command to load into Redshift table
     else

@@ -47,11 +47,12 @@ class HistoryLoad:
                     current_date = datetime.datetime.utcnow()
                     formatted_date_time = current_date.strftime("%Y/%m/%d/%H")
 
-
                     # get_chunks yields a chunk, so we'll iterate over it and write each chunk to S3
                     for bytes_obj in self.rdbms_obj.get_chunks(tablename, log, self.extra_logging, self.redshift_obj, red_schema):
-                        log.info(f"Table {tablename}: chunk{chunk_no} in progress")
+                        log.info(f"Table {tablename}: chunk{chunk_no} write_to_s3 in progress")
                         key = f"{tablename}/{formatted_date_time}/{tablename}_{chunk_no}.parquet"
+                        
+                        # write chunk to s3 with key=key
                         self.s3_obj.write_to_s3(bytes_obj, key, self.is_local_run, log, self.extra_logging)
                         log.info(f"Table {tablename}: chunk{chunk_no} written to S3")
                         chunk_no += 1

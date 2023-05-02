@@ -1,3 +1,4 @@
+import os
 from utils.rdbms_operations import RDBMSOperations
 from utils.s3_operations import S3Operations
 from utils.secret_manager_operations import SecretManagerOperations
@@ -39,15 +40,17 @@ class ConfigGen:
         :return app_settings: a ConfigGen object
         """
         try:
-            args = {}
-            job_name = args["JOB_NAME"]
-            source_id = args["source_id"]
-            source_name = args["source_name"]
-            config_file = args["config_file_path"]
+            job_name = os.getenv("JOB_NAME")
+            source_id = os.getenv("source_id")
+            source_name = os.getenv("source_name")
+            config_file = os.getenv("config_file_path")
+
+            if not job_name:
+                raise Exception("No env variables received")
 
             config_dict = S3Operations.read_config_file(config_file, logger)
         except Exception as exc:
-            print(f"Exception has occured while reading job parameters: {str(exc)}")
+            logger.info(f"Exception has occured while reading env variables: {str(exc)}")
             yaml_data = open("history_load_config.yaml", "r")
             config_dict = yaml.safe_load(yaml_data)
             job_name = "HistoryLoad"
@@ -84,57 +87,51 @@ class ConfigGen:
                 "src_db_host": config_dict["Local_Run_Config"]["src_host"],
                 "src_db_port": "1433",
                 "src_database": config_dict["Local_Run_Config"]["src_database"],
-                "src_db_username": "",
-                "src_db_password": "",
+                "src_db_username": "sagadevan",
+                "src_db_password": "ip.aj.kn",
             }
             if aws_env == 'DEV':
-                config_dict["Bucket_Name"] = 'eds-dev-s3-bucket'
+                config_dict["Bucket_Name"] = 'eds-dev-s3-bucket' # needs to be configured
                 dest_secret_manager_response = {
                     "username": "redshiftadmin",
-                    "password": "",
+                    "password": "redpass",
                     "cluster": "dev-redshift",
-                    "iam_role": "arn:aws:iam:::role/dev-redshift-service-role",
+                    "iam_role": "arn:aws:iam:::role/dev-redshift-role",
                     "host": "dev-redshift.mqskjd.us-west-1.redshift.amazonaws.com",
-                    "port": "5439"
+                    "port": "5439",
                 }
             elif aws_env == 'STG':
-                config_dict["Bucket_Name"] = 'stage-s3-bucket'
+                config_dict["Bucket_Name"] = 'stage-s3-bucket' # needs to be configured
                 dest_secret_manager_response = {
                     "username": "redshiftadmin",
-                    "password": "",
+                    "password": "redpass",
                     "cluster": "stage-redshift",
-                    "iam_role": "arn:aws:iam:::role/stage-redshift-service-role",
+                    "iam_role": "arn:aws:iam:::role/stage-redshift-role",
                     "host": "stage-redshift.mqskjd.us-west-1.redshift.amazonaws.com",
-                    "port": "5439"
+                    "port": "5439",
                 }
             elif aws_env == 'PROD':
-                config_dict["Bucket_Name"] = 'prod-s3-bucket'
+                config_dict["Bucket_Name"] = 'prod-s3-bucket' # needs to be configured
                 dest_secret_manager_response = {
                     "username": "redshiftadmin",
-                    "password": "",
+                    "password": "redpass",
                     "cluster": "prod-redshift",
-                    "iam_role": "arn:aws:iam:::role/prod-redshift-service-role",
+                    "iam_role": "arn:aws:iam:::role/prod-redshift-role",
                     "host": "prod-redshift.mqskjd.us-west-1.redshift.amazonaws.com",
-                    "port": "5439"
+                    "port": "5439",
                 }
 
         src_details = {
-                "src_db_engine": source_secret_manager_response.get(
-                    "src_db_engine"
-                ),
-                "src_db_host": source_secret_manager_response.get("src_db_host"),
-                "src_db_port": source_secret_manager_response.get("src_db_port"),
-                "src_database": connect_info["DB_Info"]["source_database"],
-                "src_db_username": source_secret_manager_response.get(
-                    "src_db_username"
-                ),
-                "src_db_password": source_secret_manager_response.get(
-                    "src_db_password"
-                ),
-                "src_schema": connect_info["DB_Info"]["source_schema"],
-                "source": source_name,
-                "is_local_run": is_local_run
-            }
+            "src_db_engine": source_secret_manager_response.get("src_db_engine"),
+            "src_db_host": source_secret_manager_response.get("src_db_host"),
+            "src_db_port": source_secret_manager_response.get("src_db_port"),
+            "src_database": connect_info["DB_Info"]["source_database"],
+            "src_db_username": source_secret_manager_response.get("src_db_username"),
+            "src_db_password": source_secret_manager_response.get("src_db_password"),
+            "src_schema": connect_info["DB_Info"]["source_schema"],
+            "source": source_name,
+            "is_local_run": is_local_run,
+        }
         
         rdbms_obj = RDBMSOperations(**src_details) if src_details else None
 
@@ -160,8 +157,9 @@ class ConfigGen:
     
 
         if not rdbms_obj or not redshift_obj or not s3_obj or not tables:
-            raise ValueError("Unable to locate required arguments.")
+            raise ValueError("Unable to locate required arguments")
 
+        logger.info("Helper class objects created")
 
         return cls(
             job_name,

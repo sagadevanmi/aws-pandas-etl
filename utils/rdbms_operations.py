@@ -142,8 +142,8 @@ class RDBMSOperations:
             else:
                 cnxn = pymssql.connect(
                     server=f'{self.src_db_host}', # syntax => {host}:{port}\\{db_instance}
-                    user=r'sagadevan', # syntax => {domain}\\{username}}
-                    password=r'ip.aj.qw',
+                    user=f'{self.src_db_username}', # syntax => {domain}\\{username}}
+                    password=f'{self.src_db_password}',
                     database=f'{self.src_database}'
                 )  
             
@@ -154,7 +154,7 @@ class RDBMSOperations:
             raise exc
 
 
-    def get_cols_with_datatype(self, cursor, table, dtype):
+    def get_cols_with_datatype(self, cursor, table, dtype, log_rdbms, log_extra):
         """
         Get columns which have specified datatype in source table
         :param cursor: PyODBC cursor object
@@ -162,37 +162,39 @@ class RDBMSOperations:
         :param table: Table from which columns need to be fetched
         :param dtype: String which has related dtypes separated by comma "('bit', 'tinyint', 'boolean')"
         """
+        try:
+            query = f"""
+            DECLARE @object_id INT;
 
-        query = f"""
-        DECLARE @object_id INT;
+            SELECT @object_id = object_id 
+            FROM sys.tables 
+            WHERE name = '{table}' 
+                AND schema_id = SCHEMA_ID('{self.src_schema}');
 
-        SELECT @object_id = object_id 
-        FROM sys.tables 
-        WHERE name = '{table}' 
-            AND schema_id = SCHEMA_ID('{self.src_schema}');
+            SELECT  
+            c.name + ', '
+            FROM sys.tables t
+            JOIN sys.all_columns c
+                ON t.object_id = c.object_id
+            JOIN sys.types tt
+                ON c.user_type_id = tt.user_type_id
+            WHERE t.object_id = @object_id  
+                AND tt.name IN {dtype}  
+            FOR XML PATH('')
+            """
 
-        SELECT  
-        c.name + ', '
-        FROM sys.tables t
-        JOIN sys.all_columns c
-            ON t.object_id = c.object_id
-        JOIN sys.types tt
-            ON c.user_type_id = tt.user_type_id
-        WHERE t.object_id = @object_id  
-            AND tt.name IN {dtype}  
-        FOR XML PATH('')
-        """
-
-        res = cursor.execute(query)
-        res = cursor.fetchall()
-        dtype_col_list = []
-        if len(res) != 0:
-            dtype_col_str = res[0][0]
-            dtype_col_list = dtype_col_str.split(",")
-            dtype_col_list = [x.strip() for x in dtype_col_list]
-            if '' in dtype_col_list:
-                dtype_col_list.remove('')
-        return dtype_col_list
+            res = cursor.execute(query)
+            res = cursor.fetchall()
+            dtype_col_list = []
+            if len(res) != 0:
+                dtype_col_str = res[0][0]
+                dtype_col_list = dtype_col_str.split(",")
+                dtype_col_list = [x.strip() for x in dtype_col_list]
+                if '' in dtype_col_list:
+                    dtype_col_list.remove('')
+            return dtype_col_list
+        except Exception as exc:
+            log_rdbms.error(f"Exception in get_cols_with_datatype: {str(exc)}", extra=log_extra)
 
 
     def get_chunks(self, tablename, log_rdbms, log_extra, redshift_obj=None, red_schema=False):
@@ -208,10 +210,14 @@ class RDBMSOperations:
         cnxn1 = self.create_pyodbc_connection(log_rdbms, log_extra, False)
         cursor = cnxn1.cursor()
 
+        # create pyarrow schema using source DDL
         parquet_schema = self.create_pyarrow_schema(cursor, tablename)
-        log_rdbms.info(f"Parquet schema created successfully for {tablename}")
+        
         if red_schema:
+            # create pyarrow schema using target DDL
             parquet_schema = redshift_obj.get_pyarrow_schema(tablename, log_rdbms, log_extra)
+        
+        log_rdbms.info(f"Parquet schema created successfully for {tablename}")
         
         bit_col_list = self.get_cols_with_datatype(cursor, tablename, "('bit', 'boolean')")
         decimal_col_list = self.get_cols_with_datatype(cursor, tablename, "('decimal', 'numeric', 'money')")
@@ -225,14 +231,14 @@ class RDBMSOperations:
         for chunk_dataframe in pd.read_sql(query, cnxn, chunksize=1000000):
             
             # These datatype castings are required because pyarrow throws an error while schema enforcement
-            chunk_dataframe = DataframeOperations.castColumns(bit_col_list, 'bit', chunk_dataframe)  
-            chunk_dataframe = DataframeOperations.castColumns(decimal_col_list, 'decimal', chunk_dataframe) 
-            chunk_dataframe = DataframeOperations.castColumns(date_col_list, 'date', chunk_dataframe)
-            chunk_dataframe = DataframeOperations.castColumns(tinyint_col_list, 'tinyint', chunk_dataframe)
+            chunk_dataframe = DataframeOperations.castColumns(bit_col_list, 'bit', chunk_dataframe, log_rdbms, log_extra)  
+            chunk_dataframe = DataframeOperations.castColumns(decimal_col_list, 'decimal', chunk_dataframe, log_rdbms, log_extra) 
+            chunk_dataframe = DataframeOperations.castColumns(date_col_list, 'date', chunk_dataframe, log_rdbms, log_extra)
+            chunk_dataframe = DataframeOperations.castColumns(tinyint_col_list, 'tinyint', chunk_dataframe, log_rdbms, log_extra)
             log_rdbms.info(f"Casting completed for 1 chunk of {tablename}")
 
             # chunk_dataframe = DataframeOperations.add_row_hash_column(chunk_dataframe, df_cols)
-            chunk_dataframe = DataframeOperations.addAuditColumns(chunk_dataframe)
+            chunk_dataframe = DataframeOperations.addAuditColumns(chunk_dataframe, log_rdbms, log_extra)
 
             if red_schema:
                 # standardise column names by making them lowercase, replacing spaces with underscores
