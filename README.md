@@ -1,16 +1,16 @@
 # aws-pandas-pyarrow-etl
 
 ## RDBMS to Redshift via S3
-Read from RDBMS source like MS SQL Server or Postgres in chunks using Pandas
-Cast columns to ensure compatability with Redshift data types
-Enforce schema on these chunks using pyarrow
-Write these chunks to Amazon S3 in parquet format
-Load these chunks into Redshift using COPY command
+1. Read from RDBMS source like MS SQL Server or Postgres in chunks using Pandas
+2. Cast columns to ensure compatability with Redshift data types
+3. Enforce schema on these chunks using pyarrow
+4. Write these chunks to Amazon S3 in parquet format
+5. Load these chunks into Redshift using COPY command
 
 ## Why schema enforcement?
-Pyarrow schema can be created either based on source(RDBMS) or target(Redshift) DDLs
-The script currently generates schema based on the Redshift DDL, but it can be tweaked to generate pyarrow schema based on MSSQL source
-This schema enforcement step is necessary because without it Redshift COPY command might fail for certain data types
+- Pyarrow schema can be created either based on source(RDBMS) or target(Redshift) DDLs
+- The script currently generates schema based on the Redshift DDL, but it can be tweaked to generate pyarrow schema based on MSSQL source
+- This schema enforcement step is necessary because without it Redshift COPY command might fail for certain data types
 
 ## Where to execute
 This script can be executed in an EC2 instance which has 
