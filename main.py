@@ -35,6 +35,11 @@ class HistoryLoad:
     def process(self):
         successful_count = 0
         failed_tables = []
+        error_dict = {}
+        current_date = datetime.datetime.utcnow()
+        process_start_time = current_date.strftime("%Y/%m/%d/%H/%M")
+        with open("fsilure_logs.txt", "a") as f:
+            f.write(f"\n----------{process_start_time}----------\n")
         for tablename, details in self.tables.items():
             try:
                 if details["active_flag"] == "T":
@@ -68,11 +73,12 @@ class HistoryLoad:
             except Exception as exc:
                 log.error(f"Exception for {tablename}: {str(exc)} in process-main")
                 failed_tables.append(tablename)
+                with open("fsilure_logs.txt", "a") as f:
+                    f.write(f"{tablename}: {str(exc)}\n")
         log.info(f"Successful tables: {successful_count}")
         log.info(f"Failed tables: {str(failed_tables)}")
-
-    def main(self):
-        self.process()
+        with open("fsilure_logs.txt", "a") as f:
+            f.write("No failures in this run\n")
 
 
 if __name__ == "__main__":

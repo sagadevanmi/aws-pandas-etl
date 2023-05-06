@@ -27,10 +27,9 @@ class RDBMSOperations:
         :param database: database name
         :param user_name: user name of the database
         :param password: password of the database
-        :param temp_dir: temp_dir
         :param schema: schema of database
         :param source: source of database
-        :param is_local_run: 
+        :param is_local_run: flag which indicates whther script is run within aws env or not
         """
         # Dynamically creating src db url
         self.src_db_url = (
@@ -49,7 +48,6 @@ class RDBMSOperations:
         """
         Create PyArrow schema object by fetching list of columns from SQL Server source
         :param cursor: PyODBC cursor object
-        :param source_schema: Schema in which the table is present
         :param table: Table for which schema needs to be created
         :return schema: PyArrow schema object
         """
@@ -158,7 +156,6 @@ class RDBMSOperations:
         """
         Get columns which have specified datatype in source table
         :param cursor: PyODBC cursor object
-        :param source_schema: Schema in which the table is present
         :param table: Table from which columns need to be fetched
         :param dtype: String which has related dtypes separated by comma "('bit', 'tinyint', 'boolean')"
         """
@@ -201,9 +198,6 @@ class RDBMSOperations:
         """
         Function to read from RDBMS source in chunks
         :param tablename: Table which needs to be read
-        :param source_schema: schema in which the table is present
-        :param cnxn: PyODBC connection obj, required by pandas
-        :param cursor: cursor object, required for additional operations
         :yield bytes_obj: yield bytes_obj which needs to be written to s3
         """
         cnxn = self.create_pyodbc_connection(log_rdbms, log_extra, False)
@@ -226,6 +220,7 @@ class RDBMSOperations:
 
         log_rdbms.info(f"Fetched cols which need to be casted for table: {tablename}")
 
+        # Tweak this query to load a specific set of data
         query = f"SELECT * FROM {self.src_schema}.{tablename}"
 
         for chunk_dataframe in pd.read_sql(query, cnxn, chunksize=1000000):
