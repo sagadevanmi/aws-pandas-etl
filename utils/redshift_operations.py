@@ -41,30 +41,20 @@ class RedshiftOperations:
 
     def create_redshiftconn(self, log_redshift, log_extra, database=None):
         """
-            Create a pg8000 Redshift connection object and return it
+        Create a pg8000 Redshift connection object and return it
         :return con: pg8000 connection object
         """
         try:
-            if database:
-                con = pg.connect(
-                    database = database,
-                    user=self.username,
-                    password=self.password,
-                    host=self.host,
-                    port=self.port,
-                    ssl_context=True,
-                )
-            else:
-                con = pg.connect(
-                    database=self.database,
-                    user=self.username,
-                    password=self.password,
-                    host=self.host,
-                    port=self.port,
-                    ssl_context=True,
-                )
+            con = pg.connect(
+                database=database,
+                user=self.username,
+                password=self.password,
+                host=self.host,
+                port=self.port,
+                ssl_context=True,
+            )
         except Exception as exc:
-            log_redshift.error(f"Some error while create pg8000 connection object: {exc}", extra=log_extra)
+            log_redshift.error(f"Some error while creating pg8000 connection object: {exc}", extra=log_extra)
             raise exc
         return con
 
@@ -92,6 +82,7 @@ class RedshiftOperations:
             column_datatype = {k[0]: k[1] for k in res_column_list}
             column_scale = {k[0]: f"({k[2]}, {k[3]})" for k in res_column_list}
 
+            # Not an exhaustive list, might need updates to handle other redshift datatypes
             dtype_mapping = {
                 'timestamp without time zone': 'timestamp("ms")',
                 'character varying': 'string()',
@@ -103,6 +94,8 @@ class RedshiftOperations:
                 'smallint': 'int16()',
                 'date': 'date32()',
                 'character': 'string()',
+                'real': 'float32()',
+                'varbinary()': 'binary()',
             }
 
             pre_schema_str = ''
@@ -118,7 +111,7 @@ class RedshiftOperations:
             schema = pa.schema(eval(schema_str))
             return schema
         except Exception as exc:
-            log_redshift.info(f"Exception: {str(exc)} in get_col_dtype_mapping")
+            log_redshift.info(f"Exception: {str(exc)} in get_pyarrow_schema")
             raise exc
 
 
