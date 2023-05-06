@@ -71,6 +71,7 @@ class ConfigGen:
         dest_secret_name = secret_manager_details.get("destination_secret_name")
 
         
+        # To read from secrets manager set is_local_run to 'F' in the config file
         if not is_local_run:
             try:
                 source_secret_manager_response = (
@@ -97,7 +98,7 @@ class ConfigGen:
                     "password": "redpass",
                     "cluster": "dev-redshift",
                     "iam_role": "arn:aws:iam:::role/dev-redshift-role",
-                    "host": "dev-redshift.mqskjd.us-west-1.redshift.amazonaws.com",
+                    "host": "dev-redshift.ajmqskjdip.us-west-1.redshift.amazonaws.com",
                     "port": "5439",
                 }
             elif aws_env == 'STG':
@@ -107,7 +108,7 @@ class ConfigGen:
                     "password": "redpass",
                     "cluster": "stage-redshift",
                     "iam_role": "arn:aws:iam:::role/stage-redshift-role",
-                    "host": "stage-redshift.mqskjd.us-west-1.redshift.amazonaws.com",
+                    "host": "stage-redshift.sremqskjd.us-west-1.redshift.amazonaws.com",
                     "port": "5439",
                 }
             elif aws_env == 'PROD':
@@ -117,7 +118,7 @@ class ConfigGen:
                     "password": "redpass",
                     "cluster": "prod-redshift",
                     "iam_role": "arn:aws:iam:::role/prod-redshift-role",
-                    "host": "prod-redshift.mqskjd.us-west-1.redshift.amazonaws.com",
+                    "host": "prod-redshift.mqskjdsd.us-west-1.redshift.amazonaws.com",
                     "port": "5439",
                 }
 

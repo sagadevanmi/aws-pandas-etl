@@ -35,7 +35,6 @@ class HistoryLoad:
     def process(self):
         successful_count = 0
         failed_tables = []
-        error_dict = {}
         current_date = datetime.datetime.utcnow()
         process_start_time = current_date.strftime("%Y/%m/%d/%H/%M")
         with open("fsilure_logs.txt", "a") as f:

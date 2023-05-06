@@ -1,0 +1,20 @@
+main.py -> 
+    __main__ -> 
+        ConfigGen.load_config()
+        HistoryLoad() -> __init__
+        process() -> 
+            for chunk in rdbms_operations.py -> get_chunks()
+
+                rdbms_operations.py -> 
+                    get_chunks() -> 
+                        create_pyodbc_connection()
+                        create_pyarrow_schema()
+                        get_cols_with_datatype()
+                        DataframeOperations.castColumns()
+                        DataframeOperations.addAuditColumns()
+                        DataframeOperations.get_parquet_bytes()
+
+                s3_operations.py ->
+                    write_to_s3()
+            redshift_operations.py ->
+                load_data()
