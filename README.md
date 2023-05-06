@@ -15,11 +15,11 @@
 ## Where to execute
 This script can be executed in an EC2 instance which has 
   1. necessary permissions(either through IAM instance profile or access keys) to 
-    a. write to S3
-    b. run COPY command 
-    c. fetch secrets from Secrets Manager
+      * write to S3
+      * run COPY command 
+      * fetch secrets from Secrets Manager
   2. security groups configured to create a connection with the Redshift cluster
-  3. connection permisssions for connecting with the RDBMS source
+  3. connection permissions for connecting with the RDBMS source
 
 This script can also be run locally if:
   1. access keys are configured 
