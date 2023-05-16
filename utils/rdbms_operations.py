@@ -122,7 +122,7 @@ class RDBMSOperations:
             raise exc
 
 
-    def create_pyodbc_connection(self, log_rdbms, log_extra, is_local_run=True):
+    def create_sql_server_connection(self, log_rdbms, log_extra, is_local_run=True):
         """
         Create PyODBC connection object
         :return cnxn: PyODBC connection object
@@ -200,8 +200,8 @@ class RDBMSOperations:
         :param tablename: Table which needs to be read
         :yield bytes_obj: yield bytes_obj which needs to be written to s3
         """
-        cnxn = self.create_pyodbc_connection(log_rdbms, log_extra, False)
-        cnxn1 = self.create_pyodbc_connection(log_rdbms, log_extra, False)
+        cnxn = self.create_sql_server_connection(log_rdbms, log_extra, False)
+        cnxn1 = self.create_sql_server_connection(log_rdbms, log_extra, False)
         cursor = cnxn1.cursor()
 
         # create pyarrow schema using source DDL
