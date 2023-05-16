@@ -4,11 +4,11 @@ import boto3
 from botocore.exceptions import ClientError
 
 
-class SecretManagerOperations:
+class SecretsManagerOperations:
     """Class for handling secrets manager operations"""
 
     @staticmethod
-    def load_secret_manager_details(secret_name, region_name):
+    def load_secrets_manager_details(secret_name, region_name):
         """
 
         :param secret_name: name of the secret which need to be fetched

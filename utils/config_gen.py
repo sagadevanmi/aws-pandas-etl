@@ -1,7 +1,7 @@
 import os
 from utils.rdbms_operations import RDBMSOperations
 from utils.s3_operations import S3Operations
-from utils.secret_manager_operations import SecretManagerOperations
+from utils.secrets_manager_operations import SecretsManagerOperations
 from utils.redshift_operations import RedshiftOperations
 import yaml
 
@@ -75,10 +75,10 @@ class ConfigGen:
         if not is_local_run:
             try:
                 source_secret_manager_response = (
-                    SecretManagerOperations.load_secret_manager_details(source_secret_name, region)
+                    SecretsManagerOperations.load_secrets_manager_details(source_secret_name, region)
                 )
                 dest_secret_manager_response = (
-                    SecretManagerOperations.load_secret_manager_details(dest_secret_name, region)
+                    SecretsManagerOperations.load_secrets_manager_details(dest_secret_name, region)
                 )
             except Exception as exc:
                 raise
