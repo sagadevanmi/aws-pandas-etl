@@ -222,6 +222,7 @@ class RDBMSOperations:
 
         # Tweak this query to load a specific set of data
         query = f"SELECT * FROM {self.src_schema}.{tablename}"
+        run_id = -1
 
         for chunk_dataframe in pd.read_sql(query, cnxn, chunksize=1000000):
             
@@ -233,7 +234,7 @@ class RDBMSOperations:
             log_rdbms.info(f"Casting completed for 1 chunk of {tablename}")
 
             # chunk_dataframe = DataframeOperations.add_row_hash_column(chunk_dataframe, df_cols)
-            chunk_dataframe = DataframeOperations.addAuditColumns(chunk_dataframe, log_rdbms, log_extra)
+            chunk_dataframe = DataframeOperations.addAuditColumns(chunk_dataframe, log_rdbms, log_extra, run_id=run_id)
 
             if red_schema:
                 # standardise column names by making them lowercase, replacing spaces with underscores
@@ -242,6 +243,7 @@ class RDBMSOperations:
                 chunk_dataframe.columns = chunk_dataframe.columns.str.replace("-", "").str.replace("__", "_")
 
             bytes_obj = DataframeOperations.get_parquet_bytes(chunk_dataframe, parquet_schema)
+            run_id -= 1
 
             yield bytes_obj
         
