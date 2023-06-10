@@ -79,6 +79,9 @@ class RedshiftOperations:
             cursor.execute(stmt)
             res_column_list = cursor.fetchall()
             column_list = [x[0].lower() for x in res_column_list]
+
+            if column_list is None or len(column_list) == 0:
+                raise Exception(f"{tablename}does not exist in Redshift")
             column_datatype = {k[0]: k[1] for k in res_column_list}
             column_scale = {k[0]: f"({k[2]}, {k[3]})" for k in res_column_list}
 
